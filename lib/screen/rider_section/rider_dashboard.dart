@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_geocoder/geocoder.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoding/geocoding.dart';
@@ -55,7 +56,10 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
   List<AutocompletePrediction> predictions2 = [];
 
   //  source lat and long
-  LatLng _sourceLocation = const LatLng(0.0, 0.0);
+  final LatLng _sourceLocation = const LatLng(0.0, 0.0);
+  LatLng _currentLocationUpdates = const LatLng(0.0, 0.0);
+  LatLng _destinationLocationUpdates = const LatLng(0.0, 0.0);
+
   LatLng _destinationLocation = const LatLng(0.0, 0.0);
   DirectionDetails tripDirectionDetails = DirectionDetails();
 
@@ -68,7 +72,7 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
   String selectedPayment = 'WALLET';
 
   // markers list
-  Set<Marker> _markers = {};
+  final Set<Marker> _markers = {};
   bool nearbyDriverKeysLoaded = false;
   // initial location of the map view
   static const CameraPosition _kGooglePlex = CameraPosition(
@@ -107,7 +111,7 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
       CameraPosition cameraPosition = CameraPosition(
           target: LatLng(currentPosition!.latitude, currentPosition!.longitude),
           zoom: 14);
-      controller = await _controller!.future;
+      controller = await _controller.future;
       controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
       setState(() {});
     }
@@ -167,16 +171,112 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
       currentPosition = position;
       if (isOnline) {
         Geofire.setLocation(userId!, position.latitude, position.longitude);
+        _currentLocationUpdates = LatLng(position.latitude, position.longitude);
         FirebaseFirestore.instance.collection('bus').doc(userId!).update({
           'bus_information': {
             'latitude': _currentLocation.latitude,
             'longitude': _currentLocation.longitude,
           }
         });
+        updateDurationAndDistance();
       }
       LatLng latLng = LatLng(position.latitude, position.longitude);
       controller.animateCamera(CameraUpdate.newLatLng(latLng));
     });
+  }
+
+  //
+  String historyDistance = '';
+  double h1 = 0.0;
+  bool isH1 = false;
+  double h2 = 0.0;
+  bool isH2 = false;
+  double h3 = 0.0;
+  bool isH3 = false;
+  double h4 = 0.0;
+  bool isH4 = false;
+
+  String totalDistance = '';
+  void updateDurationAndDistance() async {
+    print("herex");
+    var thisDetails = await HelpherMethods.getDirectionDetails(
+        _currentLocationUpdates, _destinationLocationUpdates);
+    print("herex ${thisDetails!.distanceText!.split('km')[0]}");
+    String distance = thisDetails.distanceText!.split('km')[0].toString();
+    // ignore: use_build_context_synchronously
+    Provider.of<AppData>(context, listen: false).updateDistanceText(distance);
+
+    DatabaseReference userArriedRef =
+        FirebaseDatabase.instance.ref('user/$userId/arrived');
+
+    if (h4 == double.parse(distance) && isH4 == false) {
+      final coordinates = Coordinates(
+          _currentLocationUpdates.latitude, _currentLocationUpdates.longitude);
+      var addresses =
+          await Geocoder.local.findAddressesFromCoordinates(coordinates);
+      String address = addresses.first.addressLine as String;
+      final json = {
+        'stop': '4',
+        'arrivedTime': DateTime.now().toString(),
+        'arrivedLocation': address,
+      };
+      userArriedRef.push().set(json);
+      print('history 4 added');
+      setState(() {
+        isH4 = true;
+      });
+    } else if (h3 == double.parse(distance) && isH3 == false) {
+      final coordinates = Coordinates(
+          _currentLocationUpdates.latitude, _currentLocationUpdates.longitude);
+      var addresses =
+          await Geocoder.local.findAddressesFromCoordinates(coordinates);
+      String address = addresses.first.addressLine as String;
+      final json = {
+        'stop': '3',
+        'arrivedTime': DateTime.now().toString(),
+        'arrivedLocation': address,
+      };
+      userArriedRef.push().set(json);
+      print('history 3 added');
+      setState(() {
+        isH3 = true;
+      });
+    } else if (h2 == double.parse(distance) && isH2 == false) {
+      final coordinates = Coordinates(
+          _currentLocationUpdates.latitude, _currentLocationUpdates.longitude);
+      var addresses =
+          await Geocoder.local.findAddressesFromCoordinates(coordinates);
+      String address = addresses.first.addressLine as String;
+      final json = {
+        'stop': '2',
+        'arrivedTime': DateTime.now().toString(),
+        'arrivedLocation': address,
+      };
+      userArriedRef.push().set(json);
+      print('history 2 added');
+
+      setState(() {
+        isH2 = true;
+      });
+    } else if (h1 == double.parse(distance) && isH1 == false) {
+      final coordinates = Coordinates(
+          _currentLocationUpdates.latitude, _currentLocationUpdates.longitude);
+      var addresses =
+          await Geocoder.local.findAddressesFromCoordinates(coordinates);
+      String address = addresses.first.addressLine as String;
+      final json = {
+        'stop': '1',
+        'arrivedTime': DateTime.now().toString(),
+        'arrivedLocation': address,
+      };
+      userArriedRef.push().set(json);
+
+      setState(() {
+        isH1 = true;
+      });
+    } else {
+      print('history Not added');
+    }
   }
 
   Future<void> getDirection() async {
@@ -188,14 +288,27 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
     // set destination lat and long
     var destLatLng =
         LatLng(getDestLatLng[0].latitude, getDestLatLng[0].longitude);
+    _destinationLocationUpdates = destLatLng;
     // get latitute and longitude from address
     var pickLatLng = LatLng(pickup!.latitude, pickup.longitude);
 
     var thisDetails =
         await HelpherMethods.getDirectionDetails(pickLatLng, destLatLng);
+    String distance = thisDetails!.distanceText!.split('km')[0].toString();
 
-    Provider.of<AppData>(context, listen: false).carestimatedFare(thisDetails!);
-    Provider.of<AppData>(context, listen: false).bikeEstimatedFare(thisDetails);
+    Provider.of<AppData>(context, listen: false).updateDistanceText(distance);
+    try {
+      print('history $totalDistance');
+      double distanceDouble = double.parse(totalDistance);
+      double distanceDivided = distanceDouble / 4;
+      h1 = distanceDivided;
+      h2 = distanceDivided * 2;
+      h3 = distanceDivided * 3;
+      h4 = distanceDivided * 4;
+      print("history $h1 $h2 $h3 $h4");
+    } catch (e) {
+      print('history $e');
+    }
 
     setState(() {
       isLoading = true;
@@ -236,12 +349,13 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
       infoWindow: InfoWindow(title: pickup.placeName, snippet: "My Location"),
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
     );
+
     Marker destinationMarker = Marker(
       markerId: const MarkerId("destination"),
       position: _destinationLocation,
       infoWindow:
           InfoWindow(title: destination.placeName, snippet: "Destination"),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
     );
 
     setState(() {
@@ -274,6 +388,7 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    totalDistance = Provider.of<AppData>(context).distanceText;
     return Scaffold(
       body: Stack(
         children: <Widget>[
@@ -286,7 +401,7 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
               myLocationEnabled: true,
               initialCameraPosition: _kGooglePlex,
               onMapCreated: (GoogleMapController controller) {
-                _controller!.complete(controller);
+                _controller.complete(controller);
               },
               polylines: _polylines,
               markers: _markers,
@@ -297,39 +412,68 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
             width: double.infinity,
             color: Colors.black45,
           ),
-          // button
 
           Positioned(
               top: 40,
               left: 60,
-              child: SlidingSwitch(
-                textOff: 'Offline',
-                textOn: 'Online',
-                colorOn: Colors.green,
-                value: isOnline,
-                width: 250,
-                onChanged: (bool value) {
-                  if (value == true) {
-                    _goOnline();
-                    _getLocatonLiveUpdates();
-                    setState(() {
-                      isOnline = true;
-                    });
-                    const SnackBar(content: Text('You are ONLINE now!'))
-                        .show(context);
-                  } else {
-                    goOffline();
-                    setState(() {
-                      isOnline = false;
-                    });
-                    const SnackBar(content: Text('You are OFFLINE now!'))
-                        .show(context);
-                  }
-                },
-                onDoubleTap: () {},
-                onSwipe: () {},
-                onTap: () {},
-              ))
+              child: Column(
+                children: [
+                  SlidingSwitch(
+                    textOff: 'Offline',
+                    textOn: 'Online',
+                    colorOn: Colors.green,
+                    value: isOnline,
+                    width: 250,
+                    onChanged: (bool value) {
+                      if (value == true) {
+                        _goOnline();
+                        _getLocatonLiveUpdates();
+                        setState(() {
+                          isOnline = true;
+                        });
+                        const SnackBar(content: Text('You are ONLINE now!'))
+                            .show(context);
+                      } else {
+                        goOffline();
+                        setState(() {
+                          isOnline = false;
+                        });
+                        const SnackBar(content: Text('You are OFFLINE now!'))
+                            .show(context);
+                      }
+                    },
+                    onDoubleTap: () {},
+                    onSwipe: () {},
+                    onTap: () {},
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    'DISTANCE: $totalDistance',
+                    style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  ),
+                ],
+              )),
+          // position button
+          Positioned(
+            bottom: 10,
+            right: 20,
+            child: FloatingActionButton(
+              onPressed: () {
+                // show history dialog
+                // showDialog(
+                //     context: context,
+                //     builder: (BuildContext context) => const HistoryDialog());
+              },
+              materialTapTargetSize: MaterialTapTargetSize.padded,
+              backgroundColor: Colors.black,
+              child: const Icon(Icons.history, size: 36.0),
+            ),
+          ),
         ],
       ),
     );

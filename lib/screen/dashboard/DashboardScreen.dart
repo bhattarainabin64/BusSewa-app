@@ -1,13 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:roadway_core/api/FireHelpher.dart';
 
@@ -16,8 +14,8 @@ import 'package:roadway_core/api/push_notification.dart';
 import 'package:roadway_core/global_variable.dart';
 import 'package:roadway_core/model/address.dart';
 import 'package:roadway_core/model/nearby_drivers.dart';
+import 'package:roadway_core/screen/rider_section/HistoryDialog.dart';
 
-import 'package:snack/snack.dart';
 import '../../dataprovider/appdata.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -32,7 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     'assets/images/promo2.png',
   ];
 
-  int _current = 0;
+  final int _current = 0;
 
   GoogleMapController? _controller;
   LatLng? driverpostion;
@@ -218,180 +216,125 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     String? firstaddress =
         Provider.of<AppData>(context, listen: false).address1;
-    String? secondaddress = Provider.of<AppData>(context).address2;
     String? username = Provider.of<AppData>(context).first_name;
 
+    TextEditingController textController = TextEditingController();
+
     return Scaffold(
+      // This is handled by the search bar itself.
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
+        title: const Text("BusSewa"),
         backgroundColor: Colors.white,
-        elevation: 0,
-        leading: Padding(
-            padding: const EdgeInsets.only(top: 30.0, bottom: 20, left: 25),
-            child: StreamBuilder(
-              stream: FirebaseDatabase.instance
-                  .ref()
-                  .child(
-                      'user/${FirebaseAuth.instance.currentUser!.uid}/isRider')
-                  .onValue,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  DatabaseEvent? data = snapshot.data;
-                  if (data!.snapshot.value == true) {
-                    return CupertinoSwitch(
-                        value: false,
-                        onChanged: (value) {
-                          Navigator.pushNamed(context, "/rider_dashboard");
-                        });
-                  } else if (data.snapshot.value == false) {
-                    return CupertinoSwitch(
-                        value: false,
-                        onChanged: (value) {
-                          const SnackBar(
-                                  content: Text(
-                                      'Please verify to turn ON the rider mode!'))
-                              .show(context);
-                        });
-                  }
-                }
-                return CupertinoSwitch(value: false, onChanged: (value) {});
+        foregroundColor: Colors.black,
+        centerTitle: true,
+      ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          GoogleMap(
+              zoomControlsEnabled: false,
+              mapType: MapType.normal,
+              myLocationButtonEnabled: true,
+              myLocationEnabled: true,
+              initialCameraPosition: _kGooglePlex,
+              onMapCreated: (GoogleMapController controller) {
+                _controller = controller;
               },
-            )),
-        title: Padding(
-          padding: const EdgeInsets.only(top: 30.0, bottom: 20, left: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Text(
-                "Welcome $username!",
-                style: const TextStyle(
-                    color: Color.fromARGB(255, 121, 34, 139),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500),
-              ),
-              // upgrade to pro icon
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, "/choose_verf_category");
-                },
-                child: const Icon(
-                  Icons.bus_alert,
-                  color: Color.fromARGB(255, 10, 13, 0),
-                  size: 32,
-                ),
-              ),
-            ],
+              markers: _markers),
+          buildFloatingSearchBar(),
+        ],
+      ),
+    );
+  }
+
+  Widget buildFloatingSearchBar() {
+    final isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
+
+    return FloatingSearchBar(
+      hint: 'Search bus',
+      // scrollPadding: const EdgeInsets.only(top: 16, bottom: 56),
+      // transitionDuration: const Duration(milliseconds: 800),
+      // transitionCurve: Curves.easeInOut,
+      // physics: const BouncingScrollPhysics(),
+      // axisAlignment: isPortrait ? 0.0 : -1.0,
+      // openAxisAlignment: 0.0,
+      // width: isPortrait ? 600 : 500,
+      // debounceDelay: const Duration(milliseconds: 500),
+      // onQueryChanged: (query) {
+      //   // Call your model, bloc, controller here.
+      // },
+      // Specify a custom transition to be used for
+      // animating between opened and closed stated.
+      // transition: CircularFloatingSearchBarTransition(),
+      actions: [
+        FloatingSearchBarAction(
+          showIfOpened: false,
+          child: CircularButton(
+            icon: const Icon(Icons.place),
+            onPressed: () {},
           ),
         ),
-      ),
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(top: 20, left: 20),
-              child: Text(
-                "Your current location,",
-                style: TextStyle(
-                    color: Color.fromARGB(255, 21, 181, 23),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 6, left: 10),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.location_on,
-                    color: Color.fromARGB(255, 13, 0, 0),
-                    size: 28,
-                  ),
-                  Flexible(
-                    child: Text(
-                      '$firstaddress',
-                      maxLines: 1,
-                      style: GoogleFonts.baloo2(
-                          // overflow: TextOverflow.ellipsis,
-                          color: Color.fromARGB(255, 224, 50, 91),
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: 470,
-              // child: GoogleMapsScreen(controller: _controllermap),
-              child: GoogleMap(
-                  zoomControlsEnabled: false,
-                  mapType: MapType.normal,
-                  myLocationButtonEnabled: true,
-                  myLocationEnabled: true,
-                  initialCameraPosition: _kGooglePlex,
-                  onMapCreated: (GoogleMapController controller) {
-                    _controller = controller;
-                  },
-                  markers: _markers),
-            ),
-            SizedBox(
-              height: 30,
-            ),
-            // Text("${time}"),
-            // StreamBuilder(
-            //   stream: FirebaseDatabase.instance
-            //       .ref()
-            //       .child('driverAvailable')
-            //       .onValue,
-            //   builder: (context, snapshot) {
-            //     if (snapshot.hasData) {
-            //       Map<dynamic, dynamic> data =
-            //           snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-            //       print(data.keys);
-            //       // use for loop for keys
-            //       return SizedBox(
-            //         height: 100,
-            //         child: ListView.builder(
-            //             itemCount: data.length,
-            //             shrinkWrap: true,
-            //             itemBuilder: (context, index) {
-
-            //               String userid = data.keys.elementAt(index);
-            //               // DatabaseReference usrRef = FirebaseDatabase.instance
-            //               //     .ref('user/${userid}/firstName');
-            //               // usrRef.once().then((DatabaseEvent snapshot) {
-
-            //               // setState(() {
-            //               //    busname = snapshot.snapshot.value.toString();
-            //               // });
-            //               // });
-            //               return Row(
-            //                 children: [
-            //                   ElevatedButton(
-            //                       style: ElevatedButton.styleFrom(
-            //                         backgroundColor:
-            //                             Color.fromARGB(255, 57, 22, 83),
-            //                       ),
-            //                       onPressed: () {},
-            //                       child: Text(
-            //                         "Bus Name: $userid",
-            //                         style: GoogleFonts.baloo2(
-            //                             color: Colors.white,
-            //                             fontSize: 18,
-            //                             fontWeight: FontWeight.bold),
-            //                       )),
-            //                 ],
-            //               );
-            //             }),
-            //       );
-            //     }
-            //     return const Text('');
-            //   },
-            // ),
-          ],
+        FloatingSearchBarAction.searchToClear(
+          showIfClosed: false,
         ),
-      ),
+      ],
+      builder: (context, transition) {
+        return StreamBuilder(
+          stream:
+              FirebaseDatabase.instance.ref().child('driverAvailable').onValue,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              Map<dynamic, dynamic> data =
+                  snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+              print(data.keys);
+              // use for loop for keys
+              return SizedBox(
+                height: 100,
+                child: ListView.builder(
+                    itemCount: data.length,
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      String userid = data.keys.elementAt(index);
+                      DatabaseReference usrRef = FirebaseDatabase.instance
+                          .ref('user/$userid/firstName');
+                      usrRef.once().then((DatabaseEvent snapshot) {
+                        setState(() {
+                          busname = snapshot.snapshot.value.toString();
+                        });
+                      });
+                      return Row(
+                        children: [
+                          ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(255, 255, 255, 255),
+                              ),
+                              onPressed: () {
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) =>
+                                         HistoryDialog(
+                                          userId: userid,
+                                        ));
+                              },
+                              child: Text(
+                                userid,
+                                style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold),
+                              )),
+                        ],
+                      );
+                    }),
+              );
+            }
+            return const Text('');
+          },
+        );
+      },
     );
   }
 }

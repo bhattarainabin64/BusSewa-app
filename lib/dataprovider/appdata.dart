@@ -16,6 +16,12 @@ class AppData extends ChangeNotifier {
     notifyListeners();
   }
 
+  String distanceText = "";
+  updateDistanceText(String distance) {
+    distanceText = distance;
+    notifyListeners();
+  }
+
   // update payment method
   String? paymentMethod = "";
   void updatePaymentMethod(String payment) {

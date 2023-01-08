@@ -11,6 +11,7 @@ String? address1;
 String? address2;
 StreamSubscription<Position>? homeTabPositionStream;
 
+
 User? currentUser = FirebaseAuth.instance.currentUser;
 
 String? uuid;

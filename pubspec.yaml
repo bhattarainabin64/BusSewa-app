@@ -93,6 +93,14 @@ dependencies:
   panara_dialogs: ^0.1.4
   floating_bottom_navigation_bar: ^1.5.2
   lottie: ^2.1.0
+  flutter_geocoder: ^0.2.2-nullsafety
+  intl: ^0.17.0
+  flutter_time_ago: ^0.0.3
+  timeago_flutter: ^1.2.0
+  timeago: ^3.3.0
+  anim_search_bar: ^2.0.3
+  search_app_bar_page: ^2.1.2
+  material_floating_search_bar: ^0.3.7
 
 dev_dependencies:
   flutter_test:

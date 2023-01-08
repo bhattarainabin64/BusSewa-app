@@ -22,7 +22,6 @@ import 'screen/registration/rider_registration/rider_verification_2.dart';
 import 'screen/registration/rider_registration/supporting_doc_3.dart';
 import 'screen/rider_section/rider_dashboard.dart';
 
-
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print('Handling a background message ${message.messageId}');
@@ -68,7 +67,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -79,9 +77,9 @@ class MyApp extends StatelessWidget {
         builder: (context, navigatorKey) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            initialRoute: '/splash',
+            initialRoute: '/dashboard',
             routes: {
-              '/splash':(context) => const SplashScren(),
+              '/splash': (context) => const SplashScren(),
               '/viewkyc': (context) => const ViewKYC(),
               '/enter_phone': (context) => const EnterPhoneScreen(),
               '/verify_otp': (context) => const OtpScreen(),
@@ -95,7 +93,8 @@ class MyApp extends StatelessWidget {
               '/editprofile': (context) => const EditProfilePage(),
               '/riderprofile': (context) => const RiderProfile(),
               '/search': (context) => const SearchPage(),
-              '/riderDashboardScreen':(context) => const RiderDashboardScreen(),
+              '/riderDashboardScreen': (context) =>
+                  const RiderDashboardScreen(),
             },
             navigatorKey: navigatorKey,
             localizationsDelegates: const [
