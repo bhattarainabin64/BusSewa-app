@@ -1,20 +1,16 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
-
-import 'package:roadway_core/dataprovider/appdata.dart';
-
-import 'package:roadway_core/screen/registration/EnterPhone_Screen.dart';
-import 'package:roadway_core/widgets/custom_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:snack/snack.dart';
+import '../../dataprovider/appdata.dart';
+import '../../widgets/custom_button.dart';
+import 'EnterPhone_Screen.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({super.key});

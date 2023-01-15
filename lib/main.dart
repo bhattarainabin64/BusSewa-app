@@ -17,6 +17,7 @@ import 'screen/profile/viewkyc.dart';
 import 'screen/registration/EnterPhone_Screen.dart';
 import 'screen/registration/OtpScreen.dart';
 import 'screen/registration/addational_information.dart';
+import 'screen/registration/rider_registration/choose_vehicle_screen.dart';
 import 'screen/registration/rider_registration/rider_verification_1.dart';
 import 'screen/registration/rider_registration/rider_verification_2.dart';
 import 'screen/registration/rider_registration/supporting_doc_3.dart';
@@ -77,7 +78,7 @@ class MyApp extends StatelessWidget {
         builder: (context, navigatorKey) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            initialRoute: '/dashboard',
+            initialRoute: '/splash',
             routes: {
               '/splash': (context) => const SplashScren(),
               '/viewkyc': (context) => const ViewKYC(),
@@ -93,6 +94,7 @@ class MyApp extends StatelessWidget {
               '/editprofile': (context) => const EditProfilePage(),
               '/riderprofile': (context) => const RiderProfile(),
               '/search': (context) => const SearchPage(),
+              '/choose_verf_category': (context) => const ChooseVehicleScreen(),
               '/riderDashboardScreen': (context) =>
                   const RiderDashboardScreen(),
             },

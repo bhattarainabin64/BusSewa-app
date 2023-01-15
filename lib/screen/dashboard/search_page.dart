@@ -3,9 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_place/google_place.dart';
 import 'package:provider/provider.dart';
-import 'package:roadway_core/dataprovider/appdata.dart';
-import 'package:roadway_core/widgets/location_list_tile.dart';
+
+import '../../dataprovider/appdata.dart';
 import '../../model/address.dart';
+import '../../widgets/location_list_tile.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});

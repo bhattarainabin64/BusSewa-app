@@ -142,6 +142,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  // make list of bus name 2
+  List busnamelist = [
+    "Saja Bus",
+    "Yatri Bus",
+  ];
+
   void startGeofireListner() {
     print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     Geofire.initialize('driverAvailable');
@@ -293,7 +299,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               return SizedBox(
                 height: 100,
                 child: ListView.builder(
-                    itemCount: data.length,
+                    itemCount: busnamelist.length,
                     shrinkWrap: true,
                     itemBuilder: (context, index) {
                       String userid = data.keys.elementAt(index);
@@ -315,12 +321,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 showDialog(
                                     context: context,
                                     builder: (BuildContext context) =>
-                                         HistoryDialog(
+                                        HistoryDialog(
                                           userId: userid,
                                         ));
                               },
                               child: Text(
-                                userid,
+                                busnamelist[index],
                                 style: const TextStyle(
                                     color: Colors.black,
                                     fontSize: 18,

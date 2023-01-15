@@ -4,9 +4,10 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:roadway_core/dataprovider/appdata.dart';
-import 'package:roadway_core/global_variable.dart';
-import 'package:roadway_core/model/address.dart';
+import '../dataprovider/appdata.dart';
+import '../global_variable.dart';
+import '../model/address.dart';
+
 
 class GoogleMapsScreen extends StatefulWidget {
   const GoogleMapsScreen({
